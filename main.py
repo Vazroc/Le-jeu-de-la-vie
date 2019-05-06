@@ -23,27 +23,30 @@ C[20:23, 20:23] = glider
 
 canclick = True
 
+t = 0
+
 
 # RULES
-def NumberNeighbors(i, j):
+def numberNeighbors(i, j):
     # assert(1<=i<=N and 1<=j<=N):'message'
-    return C[i + 1, j] + C[i + 1, j + 1] + C[i + 1, j - 1] + C[i - 1, j] + C[i - 1, j + 1] + C[i - 1, j - 1] + C[
-        i, j + 1] + C[i, j - 1]
+    nbList = [C[i + 1, j], C[i + 1, j + 1], C[i + 1, j - 1], C[i - 1, j], C[i - 1, j + 1], C[i - 1, j - 1], C[
+        i, j + 1], C[i, j - 1]]
+    return np.count_nonzero(nbList)
 
 
-def DeathCondition(i, j):  # la cellule meurt si elle a plus de x voisins ou moins de y voisins
+def deathCondition(i, j):  # la cellule meurt si elle a plus de x voisins ou moins de y voisins
     x = 3  # Nombre maximal de voisins au dela duquel la cellule meurt
 
     y = 1  # Nombre minimal de voisins au dessu duquels la cellule meurt
-    if NumberNeighbors(i, j) > x or NumberNeighbors(i, j) <= y:
+    if numberNeighbors(i, j) > x or numberNeighbors(i, j) <= y:
         return True
     else:
         return False
 
 
-def RebornCondition(i, j):  # la cellule nait si elle a z voisins
+def rebornCondition(i, j):  # la cellule nait si elle a z voisins
     z = 3  # Nombre de voisins qui font renaître la cellule
-    if NumberNeighbors(i, j) == z:
+    if numberNeighbors(i, j) == z:
         return True
     else:
         return False
@@ -54,14 +57,44 @@ def update(t):
     a = deepcopy(C)
     for i in range(1, N + 1):
         for j in range(1, N + 1):
-            if DeathCondition(i, j):
-                a[i, j] = 0
-            if RebornCondition(i, j):
+            if C[i, j] == 0 and rebornCondition(i, j):
                 a[i, j] = 1
-    print(a)
-    C =a
+            if C[i, j] != 0:
+                    if deathCondition(i, j):
+                         a[i, j] = 0
+                    else:
+                        a[i, j] = C[i,j] + 1
+    # print(a)
+    print(t)
+    print("count:", count())
+    print("mean age:", meanAge())
+    C = a
     im.set_array(a)
+    t += 1
 
+
+# TOOLS
+def count():
+    count = 0
+    for i in range(1, N+1):
+        for j in range(1, N+1):
+            if C[i][j] != 0:
+                count += 1
+    return count
+
+
+def meanAge():
+    sum = 0
+    count = 0
+    for i in range(1, N+1):
+        for j in range(1, N+1):
+            if C[i][j] != 0:
+                sum += C[i][j]
+                count += 1
+    if count != 0:
+        return sum/count
+    else:
+        return 0
 
 
 
@@ -87,5 +120,5 @@ title = plt.title("")
 
 
 ani = matplotlib.animation.FuncAnimation(fig, func=update,
-                                             repeat=False, interval=100)
+                                             repeat=False, interval=50)
 plt.show()
