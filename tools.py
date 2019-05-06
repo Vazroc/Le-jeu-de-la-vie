@@ -1,3 +1,5 @@
+# Ce fichier regroupe les différents outils utilisés : génération, quantification et analyse des expériences.
+
 import numpy as np
 
 # GENERATION

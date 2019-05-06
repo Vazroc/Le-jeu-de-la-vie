@@ -1,3 +1,5 @@
+# Contient le cas de plusieurs populations en concurrence.
+
 import matplotlib.pyplot as plt
 import matplotlib.animation
 import numpy as np
