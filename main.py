@@ -7,27 +7,24 @@ from copy import deepcopy
 '''
 Le code n'est pas encore optimisé pour le cas ou on veut lancer 2 familles de cellules différentes sur le jeu de la vie.
 '''
+
+# PATTERNS DICTIONARY
+glider = [[1, 0, 0],
+          [0, 0, 1],
+          [1, 1, 1]]
+
+
+# GRID & INITIAL SITUATION
 N = 50  # Dimension du 2D array
 
 C = np.zeros((N + 2, N + 2))  # le 2D array. 0: pas de cellule.1: cellule présente.
-
-x = 3  # Nombre maximal de voisins au dela duquel la cellule meurt
-
-y = 1  # Nombre minimal de voisins au dessu duquels la cellule meurt
-
-z = 3  # Nombre de voisins qui font renaître la cellule
+C[1:4, 1:4] = glider
+C[20:23, 20:23] = glider
 
 canclick = True
 
 
-glider = [[1, 0, 0],
-          [0, 0, 1],
-          [1, 1, 1]]
-C[1:4, 1:4] = glider
-C[20:23, 20:23] = glider
-
-
-
+# RULES
 def NumberNeighbors(i, j):
     # assert(1<=i<=N and 1<=j<=N):'message'
     return C[i + 1, j] + C[i + 1, j + 1] + C[i + 1, j - 1] + C[i - 1, j] + C[i - 1, j + 1] + C[i - 1, j - 1] + C[
@@ -35,6 +32,9 @@ def NumberNeighbors(i, j):
 
 
 def DeathCondition(i, j):  # la cellule meurt si elle a plus de x voisins ou moins de y voisins
+    x = 3  # Nombre maximal de voisins au dela duquel la cellule meurt
+
+    y = 1  # Nombre minimal de voisins au dessu duquels la cellule meurt
     if NumberNeighbors(i, j) > x or NumberNeighbors(i, j) <= y:
         return True
     else:
@@ -42,16 +42,11 @@ def DeathCondition(i, j):  # la cellule meurt si elle a plus de x voisins ou moi
 
 
 def RebornCondition(i, j):  # la cellule nait si elle a z voisins
+    z = 3  # Nombre de voisins qui font renaître la cellule
     if NumberNeighbors(i, j) == z:
         return True
     else:
         return False
-
-
-
-
-
-
 
 
 def update(t):
@@ -66,6 +61,11 @@ def update(t):
     print(a)
     C =a
     im.set_array(a)
+
+
+
+
+
 
 def onclick(event):
     global C
