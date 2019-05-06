@@ -55,6 +55,7 @@ def rebornCondition(i, j):  # la cellule nait si elle a z voisins
 def update(t):
     global C
     a = deepcopy(C)
+    unstable = 0
     for i in range(1, N + 1):
         for j in range(1, N + 1):
             if C[i, j] == 0 and rebornCondition(i, j):
@@ -64,10 +65,13 @@ def update(t):
                          a[i, j] = 0
                     else:
                         a[i, j] = C[i,j] + 1
-    # print(a)
+            if a[i, j] == 1 or (a[i, j] == 0 and C[i, j] != 0):
+                unstable += 1
     print(t)
+    # print(a)
     print("count:", count())
     print("mean age:", meanAge())
+    print("unstable:", unstable)
     C = a
     im.set_array(a)
     t += 1
