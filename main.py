@@ -4,6 +4,8 @@ import numpy as np
 import random
 import sys
 from copy import deepcopy
+# TOOLS
+import tools
 '''
 Le code n'est pas encore optimisé pour le cas ou on veut lancer 2 familles de cellules différentes sur le jeu de la vie.
 '''
@@ -15,16 +17,14 @@ glider = [[1, 0, 0],
 
 
 # GRID & INITIAL SITUATION
-N = 50  # Dimension du 2D array
+N = 50  # Dimension du 2D array, sans compter les bordures
 
 C = np.zeros((N + 2, N + 2))  # le 2D array. 0: pas de cellule.1: cellule présente.
 C[1:4, 1:4] = glider
 C[20:23, 20:23] = glider
 
+
 canclick = True
-
-t = 0
-
 
 # RULES
 def numberNeighbors(i, j):
@@ -69,41 +69,15 @@ def update(t):
                 unstable += 1
     print(t)
     # print(a)
-    print("count:", count())
-    print("mean age:", meanAge())
+    print("count:", count(C))
+    print("mean age:", meanAge(C))
     print("unstable:", unstable)
     C = a
     im.set_array(a)
     t += 1
 
 
-# TOOLS
-def count():
-    count = 0
-    for i in range(1, N+1):
-        for j in range(1, N+1):
-            if C[i][j] != 0:
-                count += 1
-    return count
-
-
-def meanAge():
-    sum = 0
-    count = 0
-    for i in range(1, N+1):
-        for j in range(1, N+1):
-            if C[i][j] != 0:
-                sum += C[i][j]
-                count += 1
-    if count != 0:
-        return sum/count
-    else:
-        return 0
-
-
-
-
-
+# INTERACTION
 def onclick(event):
     global C
     if (canclick):
@@ -116,13 +90,12 @@ def onclick(event):
             plt.imshow(C, interpolation="none", cmap="Blues")
             fig.canvas.draw()
 
+
+# MAIN
 fig = plt.figure()
 ax = fig.add_subplot(111)
 im = plt.imshow(C, interpolation="none", cmap="Blues")
-
 title = plt.title("")
-
-
 ani = matplotlib.animation.FuncAnimation(fig, func=update,
                                              repeat=False, interval=50)
 plt.show()
