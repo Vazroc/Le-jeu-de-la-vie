@@ -24,9 +24,9 @@ z = 3  # Nombre de voisins qui font renaître la cellule
 canclick = True
 
 #Conditions d'initialisation:
-C[1:N//2,1:N//2]=np.array([[[1,0]for i in range(1,N//2)] for j in range(1,N//2)]) #La Population 1 occupe le quartier haut gauche
+C[1:N//2,1:N//2]=np.array([[[1,0]for i in range(1, N//2)] for j in range(1,N//2)]) #La Population 1 occupe le quartier haut gauche
 
-C[N//2:N+1,N//2:N+1]=np.array([[[0,1]for i in range(N//2,N+1)] for j in range(N//2,N+1)]) #la Population 2 occupe le quartier bas droit
+C[N//2:N+1,N//2:N+1]=np.array([[[0,1]for i in range(N//2, N+1)] for j in range(N//2,N+1)]) #la Population 2 occupe le quartier bas droit
 
 
 
