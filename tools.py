@@ -1,4 +1,13 @@
+import numpy as np
+
+# GENERATION
+def randomGrid(N, pop):
+    return np.random.choice([0, 1], size=(N, N), p=[pop, 1-pop])
+
+
+# QUANTIFICATION
 def count(C):
+    N = len(C)-2
     count = 0
     for i in range(1, N+1):
         for j in range(1, N+1):
@@ -8,6 +17,7 @@ def count(C):
 
 
 def meanAge(C):
+    N = len(C)-2
     sum = 0
     count = 0
     for i in range(1, N+1):

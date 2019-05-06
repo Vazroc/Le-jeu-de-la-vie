@@ -2,9 +2,7 @@ import matplotlib.pyplot as plt
 import matplotlib.animation
 import numpy as np
 import random
-import sys
 from copy import deepcopy
-import keyboard  # using module keyboard
 
 '''
 Le code n'est pas encore optimisé pour le cas ou on veut lancer n familles quelconques de cellules différentes sur le jeu de la vie.

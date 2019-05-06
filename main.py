@@ -2,31 +2,28 @@ import matplotlib.pyplot as plt
 import matplotlib.animation
 import numpy as np
 import random
-import sys
 from copy import deepcopy
 # TOOLS
-import tools
-'''
-Le code n'est pas encore optimisé pour le cas ou on veut lancer 2 familles de cellules différentes sur le jeu de la vie.
-'''
-
-# PATTERNS DICTIONARY
-glider = [[1, 0, 0],
-          [0, 0, 1],
-          [1, 1, 1]]
+from tools import *
+# PATTERNS
+from patterns import *
 
 
 # GRID & INITIAL SITUATION
 N = 50  # Dimension du 2D array, sans compter les bordures
+pop = 0.5 #proportion of living cells at the beginning
 
 C = np.zeros((N + 2, N + 2))  # le 2D array. 0: pas de cellule.1: cellule présente.
-C[1:4, 1:4] = glider
-C[20:23, 20:23] = glider
-
+# C[1:4, 1:4] = glider()
+# C[20:23, 20:23] = glider()
+C[1:N+1, 1:N+1] = randomGrid(N, pop)
 
 canclick = True
 
+
 # RULES
+sync = 0.3 #synchronisation rate : 0 = completely asynchronous (no updating) -> 1 = completely synchronous (basic simultaneous updating)
+
 def numberNeighbors(i, j):
     # assert(1<=i<=N and 1<=j<=N):'message'
     nbList = [C[i + 1, j], C[i + 1, j + 1], C[i + 1, j - 1], C[i - 1, j], C[i - 1, j + 1], C[i - 1, j - 1], C[
@@ -37,7 +34,7 @@ def numberNeighbors(i, j):
 def deathCondition(i, j):  # la cellule meurt si elle a plus de x voisins ou moins de y voisins
     x = 3  # Nombre maximal de voisins au dela duquel la cellule meurt
 
-    y = 1  # Nombre minimal de voisins au dessu duquels la cellule meurt
+    y = 1  # Nombre minimal de voisins au dessus duquel la cellule meurt
     if numberNeighbors(i, j) > x or numberNeighbors(i, j) <= y:
         return True
     else:
@@ -58,13 +55,13 @@ def update(t):
     unstable = 0
     for i in range(1, N + 1):
         for j in range(1, N + 1):
-            if C[i, j] == 0 and rebornCondition(i, j):
-                a[i, j] = 1
-            if C[i, j] != 0:
-                    if deathCondition(i, j):
-                         a[i, j] = 0
-                    else:
-                        a[i, j] = C[i,j] + 1
+            if random.random() <= sync:
+                if C[i, j] == 0 and rebornCondition(i, j):
+                    a[i, j] = 1
+                elif C[i, j] != 0 and deathCondition(i, j):
+                    a[i, j] = 0
+            if C[i, j] != 0 and not deathCondition(i, j):
+                 a[i, j] = C[i, j] + 1
             if a[i, j] == 1 or (a[i, j] == 0 and C[i, j] != 0):
                 unstable += 1
     print(t)
