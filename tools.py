@@ -4,7 +4,7 @@ import numpy as np
 
 # GENERATION
 def randomGrid(N, pop):
-    return np.random.choice([0, 1], size=(N, N), p=[pop, 1-pop])
+    return np.random.choice([0, 1], size=(N, N), p=[1-pop, pop])
 
 
 # QUANTIFICATION

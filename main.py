@@ -56,7 +56,7 @@ def update(t, C, sync, im=None):
                  a[i, j] = C[i, j] + 1
             if a[i, j] == 1 or (a[i, j] == 0 and C[i, j] != 0): # detects if the cell is unstable (revived or died)
                 unstable += 1
-    # print(t)
+    #print(t)
     # print(a)
     # print("count:", count(C))
     # print("mean age:", meanAge(C))
@@ -86,8 +86,8 @@ def onclick(event, ax, fig, C):
 def main1():
     # Grid & initial situation
     N = 100  # Dimension du 2D array, sans compter les bordures
-    pop = 0.5 # proportion of living cells at the beginning
-    sync = 0.3 # synchronisation rate : 0 = completely asynchronous (no updating) -> 1 = completely synchronous (basic simultaneous updating)
+    pop = 0 # proportion of living cells at the beginning
+    sync = 1 # synchronisation rate : 0 = completely asynchronous (no updating) -> 1 = completely synchronous (basic simultaneous updating)
 
     C = np.zeros((N + 2, N + 2))  # le 2D array. 0: pas de cellule.1: cellule présente.
     C[1:N+1, 1:N+1] = randomGrid(N, pop)
@@ -98,15 +98,15 @@ def main1():
     im = plt.imshow(C, interpolation="none", cmap="Blues")
     title = plt.title("")
     ani = matplotlib.animation.FuncAnimation(fig, func=update, fargs=(C, sync, im),
-                                             repeat=False, interval=1)
+                                             repeat=False, interval=100)
     plt.show()
 
 
 # VARIATION OF POPULATION RATE
 def main2():
-    p = 25
+    p = 30
     popList = np.linspace(0,1,p)
-    syncList = [0.1,0.3,0.5,0.75,0.9,0.95,1]
+    syncList = [0.1,0.3,0.5,0.7,0.9,1]
     nsteps = 150
     nexps = 5
 
@@ -149,15 +149,15 @@ def main2():
 
         x_new = np.linspace(0, 1, 100)*100
         plt.figure(1)
-        spl = make_interp_spline(popList*100, activityRes, k=2) #BSpline object
+        spl = make_interp_spline(popList*100, activityRes) #BSpline object
         activity_smooth = spl(x_new)
         plt.plot(x_new, activity_smooth, label=str(sync))
         plt.figure(2)
-        spl = make_interp_spline(popList*100, densityRes, k=2) #BSpline object
+        spl = make_interp_spline(popList*100, densityRes) #BSpline object
         density_smooth = spl(x_new)
         plt.plot(x_new, density_smooth, label=str(sync))
         plt.figure(3)
-        spl = make_interp_spline(popList*100, ageRes, k=2) #BSpline object
+        spl = make_interp_spline(popList*100, ageRes) #BSpline object
         age_smooth = spl(x_new)
         plt.plot(x_new, age_smooth, label=str(sync))
 
@@ -169,21 +169,21 @@ def main2():
             sheet3.write(i,j,e)
 
     plt.figure(1)
-    plt.title("Activity of cells after "+str(nsteps)+" steps against initial population rate")
-    plt.ylabel("Activity of cells (%)")
-    plt.xlabel("Initial population rate (%)")
+    plt.title("Activity of cells after "+str(nsteps)+" steps against initial population density")
+    plt.ylabel("Steady-state activity (%)")
+    plt.xlabel("Initial density d0 (%)")
     plt.xlim(0,100)
     plt.legend()
     plt.figure(2)
-    plt.title("Density of living cells after "+str(nsteps)+" steps against initial population rate")
-    plt.ylabel("Density of living cells (%)")
-    plt.xlabel("Initial population rate (%)")
+    plt.title("Density of living cells after "+str(nsteps)+" steps against initial population density")
+    plt.ylabel("Steady-state density (%)")
+    plt.xlabel("Initial density d0 (%)")
     plt.xlim(0,100)
     plt.legend()
     plt.figure(3)
-    plt.title("Mean age of living cells after "+str(nsteps)+" steps against initial population rate")
+    plt.title("Mean age of living cells after "+str(nsteps)+" steps against initial population density")
     plt.ylabel("Mean age of living cells")
-    plt.xlabel("Initial population rate (%)")
+    plt.xlabel("Initial density d0 (%)")
     plt.xlim(0,100)
     plt.legend()
 
@@ -194,9 +194,9 @@ def main2():
 
 # VARIATION OF SYNCHRONISATION RATE
 def main3():
-    s = 25
-    popList = [0.1,0.3,0.5,0.75,0.9,0.95,1]
-    syncList = np.linspace(0,1,s)
+    s = 30
+    popList = [0.1,0.4,0.7,0.85,0.9,0.95,0.99]
+    syncList = np.linspace(0.1,1,s)
     nsteps = 150
     nexps = 5
 
@@ -237,17 +237,17 @@ def main3():
         densityRes /= nexps
         ageRes /= nexps
 
-        x_new = np.linspace(0, 1, 100)*100
+        x_new = np.linspace(0.1, 1, 100)*100
         plt.figure(4)
-        spl = make_interp_spline(syncList*100, activityRes, k=2) #BSpline object
+        spl = make_interp_spline(syncList*100, activityRes) #BSpline object
         activity_smooth = spl(x_new)
         plt.plot(x_new, activity_smooth, label=str(pop))
         plt.figure(5)
-        spl = make_interp_spline(syncList*100, densityRes, k=2) #BSpline object
+        spl = make_interp_spline(syncList*100, densityRes) #BSpline object
         density_smooth = spl(x_new)
         plt.plot(x_new, density_smooth, label=str(pop))
         plt.figure(6)
-        spl = make_interp_spline(syncList*100, ageRes, k=2) #BSpline object
+        spl = make_interp_spline(syncList*100, ageRes) #BSpline object
         age_smooth = spl(x_new)
         plt.plot(x_new, age_smooth, label=str(pop))
 
@@ -260,20 +260,20 @@ def main3():
 
     plt.figure(4)
     plt.title("Activity of cells after "+str(nsteps)+" steps against synchronisation rate")
-    plt.ylabel("Activity of cells (%)")
-    plt.xlabel("Synchronisation rate (%)")
+    plt.ylabel("Steady-state activity (%)")
+    plt.xlabel("Synchronisation rate s(%)")
     plt.xlim(10,100)
     plt.legend()
     plt.figure(5)
     plt.title("Density of living cells after "+str(nsteps)+" steps against synchronisation rate")
-    plt.ylabel("Density of living cells (%)")
-    plt.xlabel("Synchronisation rate (%)")
+    plt.ylabel("Steady-state density (%)")
+    plt.xlabel("Synchronisation rate s(%)")
     plt.xlim(10,100)
     plt.legend()
     plt.figure(6)
     plt.title("Mean age of living cells after "+str(nsteps)+" steps against synchronisation rate")
     plt.ylabel("Mean age of living cells")
-    plt.xlabel("Synchronisation rate (%)")
+    plt.xlabel("Synchronisation rate s(%)")
     plt.xlim(10,100)
     plt.legend()
 
@@ -282,8 +282,70 @@ def main3():
     book.save(name)
     book.save(TemporaryFile())
 
+# TIME EVOLUTION
+def main4():
+    popList = [0.1,0.3,0.7,0.9]
+    sync = 1
+    nsteps = 150
+    nexps = 5
+    time = [i for i in range(0,nsteps+1)]
+
+    j = 0
+    for pop in popList:
+        j += 1
+        print("main3 :",j)
+        activityRes = np.zeros(nsteps+1)
+        densityRes = np.zeros(nsteps+1)
+        ageRes = np.zeros(nsteps+1)
+
+        for k in range(nexps):
+            # Grid & initial situation
+            N = 100  # Dimension du 2D array, sans compter les bordures
+
+            C = np.zeros((N + 2, N + 2))  # le 2D array. 0: pas de cellule.1: cellule présente.
+            C[1:N+1, 1:N+1] = randomGrid(N, pop)
+
+            t = 0
+            densityRes[0] += count(C)/N**2*100
+            ageRes[0] += meanAge(C)
+            while t < nsteps:
+                C = update(t, C, sync)[0]
+                activityRes[t+1] += update(t, C, sync)[1]/N**2*100
+                densityRes[t+1] += count(C)/N**2*100
+                ageRes[t+1] += meanAge(C)
+                t += 1
+        activityRes /= nexps
+        densityRes /= nexps
+        ageRes /= nexps
+
+        plt.figure(7)
+        plt.plot(time, activityRes, label=str(pop))
+        plt.figure(8)
+        plt.plot(time, densityRes, label=str(pop))
+        plt.figure(9)
+        plt.plot(time, ageRes, label=str(pop))
+
+    plt.figure(7)
+    plt.title("Activity of cells against time")
+    plt.ylabel("Activity of cells (%)")
+    plt.xlabel("Time (number of steps)")
+    plt.xlim(0,150)
+    plt.legend()
+    plt.figure(8)
+    plt.title("Density of living cells against time")
+    plt.ylabel("Density of living cells (%)")
+    plt.xlabel("Time (number of steps)")
+    plt.xlim(0,150)
+    plt.legend()
+    plt.figure(9)
+    plt.title("Mean age of living cells against time")
+    plt.ylabel("Mean age of living cells")
+    plt.xlabel("Time (number of steps)")
+    plt.xlim(0,150)
+    plt.legend()
+
+
 # MAIN
 main2()
 main3()
 plt.show()
-
