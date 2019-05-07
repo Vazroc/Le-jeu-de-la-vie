@@ -4,6 +4,9 @@ import random
 from copy import deepcopy
 import matplotlib.animation
 import matplotlib.pyplot as plt
+from scipy.interpolate import make_interp_spline, BSpline
+import xlwt
+from tempfile import TemporaryFile
 # TOOLS
 from tools import *
 # PATTERNS
@@ -99,43 +102,176 @@ def main1():
     plt.show()
 
 
-# ANALYSE
+# VARIATION OF POPULATION RATE
 def main2():
-    popList = np.linspace(0,1,11)
-    nsteps = 100
+    p = 25
+    popList = np.linspace(0,1,p)
+    syncList = [0.1,0.3,0.5,0.75,0.9,0.95,1]
+    nsteps = 150
 
-    activityRes = np.zeros(11)
-    densityRes = np.zeros(11)
-    ageRes = np.zeros(11)
-    for i in range(11):
-        print("i =", i)
-        # Grid & initial situation
-        N = 100  # Dimension du 2D array, sans compter les bordures
-        pop = popList[i] # proportion of living cells at the beginning
-        sync = 0.3 # synchronisation rate : 0 = completely asynchronous (no updating) -> 1 = completely synchronous (basic simultaneous updating)
+    book = xlwt.Workbook()
+    sheet1 = book.add_sheet('Activity')
+    sheet2 = book.add_sheet('Density')
+    sheet3 = book.add_sheet('Mean age')
+    for i,e in enumerate(popList*100):
+        sheet1.write(i,0,e)
+        sheet2.write(i,0,e)
+        sheet3.write(i,0,e)
+    j = 0
+    for sync in syncList: # synchronisation rate : 0 = completely asynchronous (no updating) -> 1 = completely synchronous (basic simultaneous updating)
+        j += 1
+        print("main2")
+        activityRes = np.zeros(p)
+        densityRes = np.zeros(p)
+        ageRes = np.zeros(p)
+        for i in range(p):
+            print("i =", i)
+            # Grid & initial situation
+            N = 100  # Dimension du 2D array, sans compter les bordures
+            pop = popList[i] # proportion of living cells at the beginning
 
-        C = np.zeros((N + 2, N + 2))  # le 2D array. 0: pas de cellule.1: cellule présente.
-        C[1:N+1, 1:N+1] = randomGrid(N, pop)
+            C = np.zeros((N + 2, N + 2))  # le 2D array. 0: pas de cellule.1: cellule présente.
+            C[1:N+1, 1:N+1] = randomGrid(N, pop)
 
-        t = 0
-        while t < nsteps:
-            C = update(t, C, sync)[0]
-            t += 1
-        activityRes[i] = update(t, C, sync)[1]/N**2
-        densityRes[i] = count(C)/N**2
-        ageRes[i] = meanAge(C)
-    plt.figure()
-    plt.plot(popList, activityRes, 'r-')
-    plt.title("Activity of cells after "+str(nsteps)+" steps")
-    plt.figure()
-    plt.plot(popList, densityRes, 'b-')
-    plt.title("Density of living cells after "+str(nsteps)+" steps")
-    plt.figure()
-    plt.plot(popList, ageRes, 'g-')
-    plt.title("Mean age of living cells after "+str(nsteps)+" steps")
-    plt.show()
+            t = 0
+            while t < nsteps:
+                C = update(t, C, sync)[0]
+                t += 1
+            activityRes[i] = update(t, C, sync)[1]/N**2*100
+            densityRes[i] = count(C)/N**2*100
+            ageRes[i] = meanAge(C)
+
+        x_new = np.linspace(0, 1, 100)*100
+        plt.figure(1)
+        spl = make_interp_spline(popList*100, activityRes, k=2) #BSpline object
+        activity_smooth = spl(x_new)
+        plt.plot(x_new, activity_smooth, label=str(sync))
+        plt.figure(2)
+        spl = make_interp_spline(popList*100, densityRes, k=2) #BSpline object
+        density_smooth = spl(x_new)
+        plt.plot(x_new, density_smooth, label=str(sync))
+        plt.figure(3)
+        spl = make_interp_spline(popList*100, ageRes, k=2) #BSpline object
+        age_smooth = spl(x_new)
+        plt.plot(x_new, age_smooth, label=str(sync))
+
+        for i,e in enumerate(activityRes):
+            sheet1.write(i,j,e)
+        for i,e in enumerate(densityRes):
+            sheet2.write(i,j,e)
+        for i,e in enumerate(ageRes):
+            sheet3.write(i,j,e)
+
+    plt.figure(1)
+    plt.title("Activity of cells after "+str(nsteps)+" steps against initial population rate")
+    plt.ylabel("Activity of cells (%)")
+    plt.xlabel("Initial population rate (%)")
+    plt.xlim(0,100)
+    plt.legend()
+    plt.figure(2)
+    plt.title("Density of living cells after "+str(nsteps)+" steps against initial population rate")
+    plt.ylabel("Density of living cells (%)")
+    plt.xlabel("Initial population rate (%)")
+    plt.xlim(0,100)
+    plt.legend()
+    plt.figure(3)
+    plt.title("Mean age of living cells after "+str(nsteps)+" steps against initial population rate")
+    plt.ylabel("Mean age of living cells")
+    plt.xlabel("Initial population rate (%)")
+    plt.xlim(0,100)
+    plt.legend()
+
+    # Saving data
+    name = "poprate.xls"
+    book.save(name)
+    book.save(TemporaryFile())
+
+# VARIATION OF SYNCHRONISATION RATE
+def main3():
+    s = 25
+    popList = [0.1,0.3,0.5,0.75,0.9,0.95,1]
+    syncList = np.linspace(0,1,s)
+    nsteps = 150
+
+    book = xlwt.Workbook()
+    sheet1 = book.add_sheet('Activity')
+    sheet2 = book.add_sheet('Density')
+    sheet3 = book.add_sheet('Mean age')
+    for i,e in enumerate(syncList*100):
+        sheet1.write(i,0,e)
+        sheet2.write(i,0,e)
+        sheet3.write(i,0,e)
+    j = 0
+    for pop in popList:
+        j += 1
+        print("main3")
+        activityRes = np.zeros(s)
+        densityRes = np.zeros(s)
+        ageRes = np.zeros(s)
+        for i in range(s):
+            print("i =", i)
+            # Grid & initial situation
+            N = 100  # Dimension du 2D array, sans compter les bordures
+            sync = syncList[i] # proportion of living cells at the beginning
+
+            C = np.zeros((N + 2, N + 2))  # le 2D array. 0: pas de cellule.1: cellule présente.
+            C[1:N+1, 1:N+1] = randomGrid(N, pop)
+
+            t = 0
+            while t < nsteps:
+                C = update(t, C, sync)[0]
+                t += 1
+            activityRes[i] = update(t, C, sync)[1]/N**2*100
+            densityRes[i] = count(C)/N**2*100
+            ageRes[i] = meanAge(C)
+
+        x_new = np.linspace(0, 1, 100)*100
+        plt.figure(4)
+        spl = make_interp_spline(syncList*100, activityRes, k=2) #BSpline object
+        activity_smooth = spl(x_new)
+        plt.plot(x_new, activity_smooth, label=str(pop))
+        plt.figure(5)
+        spl = make_interp_spline(syncList*100, densityRes, k=2) #BSpline object
+        density_smooth = spl(x_new)
+        plt.plot(x_new, density_smooth, label=str(pop))
+        plt.figure(6)
+        spl = make_interp_spline(syncList*100, ageRes, k=2) #BSpline object
+        age_smooth = spl(x_new)
+        plt.plot(x_new, age_smooth, label=str(pop))
+
+        for i,e in enumerate(activityRes):
+            sheet1.write(i,j,e)
+        for i,e in enumerate(densityRes):
+            sheet2.write(i,j,e)
+        for i,e in enumerate(ageRes):
+            sheet3.write(i,j,e)
+
+    plt.figure(4)
+    plt.title("Activity of cells after "+str(nsteps)+" steps against synchronisation rate")
+    plt.ylabel("Activity of cells (%)")
+    plt.xlabel("Synchronisation rate (%)")
+    plt.xlim(10,100)
+    plt.legend()
+    plt.figure(5)
+    plt.title("Density of living cells after "+str(nsteps)+" steps against synchronisation rate")
+    plt.ylabel("Density of living cells (%)")
+    plt.xlabel("Synchronisation rate (%)")
+    plt.xlim(10,100)
+    plt.legend()
+    plt.figure(6)
+    plt.title("Mean age of living cells after "+str(nsteps)+" steps against synchronisation rate")
+    plt.ylabel("Mean age of living cells")
+    plt.xlabel("Synchronisation rate (%)")
+    plt.xlim(10,100)
+    plt.legend()
+
+    # Saving data
+    name = "syncrate.xls"
+    book.save(name)
+    book.save(TemporaryFile())
 
 # MAIN
 main2()
-
+main3()
+plt.show()
 
