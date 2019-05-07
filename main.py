@@ -108,6 +108,7 @@ def main2():
     popList = np.linspace(0,1,p)
     syncList = [0.1,0.3,0.5,0.75,0.9,0.95,1]
     nsteps = 150
+    nexps = 5
 
     book = xlwt.Workbook()
     sheet1 = book.add_sheet('Activity')
@@ -120,26 +121,31 @@ def main2():
     j = 0
     for sync in syncList: # synchronisation rate : 0 = completely asynchronous (no updating) -> 1 = completely synchronous (basic simultaneous updating)
         j += 1
-        print("main2")
+        print("main2 :",j)
         activityRes = np.zeros(p)
         densityRes = np.zeros(p)
         ageRes = np.zeros(p)
-        for i in range(p):
-            print("i =", i)
-            # Grid & initial situation
-            N = 100  # Dimension du 2D array, sans compter les bordures
-            pop = popList[i] # proportion of living cells at the beginning
 
-            C = np.zeros((N + 2, N + 2))  # le 2D array. 0: pas de cellule.1: cellule présente.
-            C[1:N+1, 1:N+1] = randomGrid(N, pop)
+        for k in range(nexps):
+            for i in range(p):
+                print("i =", i)
+                # Grid & initial situation
+                N = 100  # Dimension du 2D array, sans compter les bordures
+                pop = popList[i] # proportion of living cells at the beginning
 
-            t = 0
-            while t < nsteps:
-                C = update(t, C, sync)[0]
-                t += 1
-            activityRes[i] = update(t, C, sync)[1]/N**2*100
-            densityRes[i] = count(C)/N**2*100
-            ageRes[i] = meanAge(C)
+                C = np.zeros((N + 2, N + 2))  # le 2D array. 0: pas de cellule.1: cellule présente.
+                C[1:N+1, 1:N+1] = randomGrid(N, pop)
+
+                t = 0
+                while t < nsteps:
+                    C = update(t, C, sync)[0]
+                    t += 1
+                activityRes[i] += update(t, C, sync)[1]/N**2*100
+                densityRes[i] += count(C)/N**2*100
+                ageRes[i] += meanAge(C)
+        activityRes /= nexps
+        densityRes /= nexps
+        ageRes /= nexps
 
         x_new = np.linspace(0, 1, 100)*100
         plt.figure(1)
@@ -192,6 +198,7 @@ def main3():
     popList = [0.1,0.3,0.5,0.75,0.9,0.95,1]
     syncList = np.linspace(0,1,s)
     nsteps = 150
+    nexps = 5
 
     book = xlwt.Workbook()
     sheet1 = book.add_sheet('Activity')
@@ -204,26 +211,31 @@ def main3():
     j = 0
     for pop in popList:
         j += 1
-        print("main3")
+        print("main3 :",j)
         activityRes = np.zeros(s)
         densityRes = np.zeros(s)
         ageRes = np.zeros(s)
-        for i in range(s):
-            print("i =", i)
-            # Grid & initial situation
-            N = 100  # Dimension du 2D array, sans compter les bordures
-            sync = syncList[i] # proportion of living cells at the beginning
 
-            C = np.zeros((N + 2, N + 2))  # le 2D array. 0: pas de cellule.1: cellule présente.
-            C[1:N+1, 1:N+1] = randomGrid(N, pop)
+        for k in range(nexps):
+            for i in range(s):
+                print("i =", i)
+                # Grid & initial situation
+                N = 100  # Dimension du 2D array, sans compter les bordures
+                sync = syncList[i] # proportion of living cells at the beginning
 
-            t = 0
-            while t < nsteps:
-                C = update(t, C, sync)[0]
-                t += 1
-            activityRes[i] = update(t, C, sync)[1]/N**2*100
-            densityRes[i] = count(C)/N**2*100
-            ageRes[i] = meanAge(C)
+                C = np.zeros((N + 2, N + 2))  # le 2D array. 0: pas de cellule.1: cellule présente.
+                C[1:N+1, 1:N+1] = randomGrid(N, pop)
+
+                t = 0
+                while t < nsteps:
+                    C = update(t, C, sync)[0]
+                    t += 1
+                activityRes[i] += update(t, C, sync)[1]/N**2*100
+                densityRes[i] += count(C)/N**2*100
+                ageRes[i] += meanAge(C)
+        activityRes /= nexps
+        densityRes /= nexps
+        ageRes /= nexps
 
         x_new = np.linspace(0, 1, 100)*100
         plt.figure(4)
