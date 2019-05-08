@@ -56,7 +56,7 @@ def update(t, C, sync, im=None):
                  a[i, j] = C[i, j] + 1
             if a[i, j] == 1 or (a[i, j] == 0 and C[i, j] != 0): # detects if the cell is unstable (revived or died)
                 unstable += 1
-    #print(t)
+    print(t)
     # print(a)
     # print("count:", count(C))
     # print("mean age:", meanAge(C))
@@ -85,8 +85,8 @@ def onclick(event, ax, fig, C):
 # ANIMATION
 def main1():
     # Grid & initial situation
-    N = 100  # Dimension du 2D array, sans compter les bordures
-    pop = 0 # proportion of living cells at the beginning
+    N = 10  # Dimension du 2D array, sans compter les bordures
+    pop = 0.5 # proportion of living cells at the beginning
     sync = 1 # synchronisation rate : 0 = completely asynchronous (no updating) -> 1 = completely synchronous (basic simultaneous updating)
 
     C = np.zeros((N + 2, N + 2))  # le 2D array. 0: pas de cellule.1: cellule présente.
@@ -98,7 +98,7 @@ def main1():
     im = plt.imshow(C, interpolation="none", cmap="Blues")
     title = plt.title("")
     ani = matplotlib.animation.FuncAnimation(fig, func=update, fargs=(C, sync, im),
-                                             repeat=False, interval=100)
+                                             repeat=False, interval=1000)
     plt.show()
 
 
@@ -284,7 +284,7 @@ def main3():
 
 # TIME EVOLUTION
 def main4():
-    popList = [0.1,0.3,0.7,0.9]
+    popList = [0.1,0.3,0.5,0.7,0.9]
     sync = 1
     nsteps = 150
     nexps = 5
@@ -293,7 +293,7 @@ def main4():
     j = 0
     for pop in popList:
         j += 1
-        print("main3 :",j)
+        print("main4 :",j)
         activityRes = np.zeros(nsteps+1)
         densityRes = np.zeros(nsteps+1)
         ageRes = np.zeros(nsteps+1)
@@ -309,8 +309,8 @@ def main4():
             densityRes[0] += count(C)/N**2*100
             ageRes[0] += meanAge(C)
             while t < nsteps:
-                C = update(t, C, sync)[0]
-                activityRes[t+1] += update(t, C, sync)[1]/N**2*100
+                C, unstable = update(t, C, sync)
+                activityRes[t+1] += unstable/N**2*100
                 densityRes[t+1] += count(C)/N**2*100
                 ageRes[t+1] += meanAge(C)
                 t += 1
@@ -345,7 +345,129 @@ def main4():
     plt.legend()
 
 
+# SCALE - TIME EVOLUTION
+def main5():
+    pop = 0.5
+    sync = 1
+    Nlist = [10,20,50,100,200,500]
+    nsteps = 150
+    nexps = 5
+    time = [i for i in range(0,nsteps+1)]
+
+    j = 0
+    for N in Nlist:
+        j += 1
+        print("main5 :",j)
+        activityRes = np.zeros(nsteps+1)
+        densityRes = np.zeros(nsteps+1)
+        ageRes = np.zeros(nsteps+1)
+
+        for k in range(nexps):
+            # Grid & initial situation
+
+            C = np.zeros((N + 2, N + 2))  # le 2D array. 0: pas de cellule.1: cellule présente.
+            C[1:N+1, 1:N+1] = randomGrid(N, pop)
+
+            t = 0
+            densityRes[0] += count(C)/N**2*100
+            ageRes[0] += meanAge(C)
+            while t < nsteps:
+                C, unstable = update(t, C, sync)[0]
+                activityRes[t+1] += unstable/N**2*100
+                densityRes[t+1] += count(C)/N**2*100
+                ageRes[t+1] += meanAge(C)
+                t += 1
+        activityRes /= nexps
+        densityRes /= nexps
+        ageRes /= nexps
+
+        plt.figure(10)
+        plt.plot(time, activityRes, label=str(N))
+        plt.figure(11)
+        plt.plot(time, densityRes, label=str(N))
+        plt.figure(12)
+        plt.plot(time, ageRes, label=str(N))
+
+    plt.figure(10)
+    plt.title("Activity of cells against time")
+    plt.ylabel("Activity of cells (%)")
+    plt.xlabel("Time (number of steps)")
+    plt.xlim(0,150)
+    plt.legend()
+    plt.figure(11)
+    plt.title("Density of living cells against time")
+    plt.ylabel("Density of living cells (%)")
+    plt.xlabel("Time (number of steps)")
+    plt.xlim(0,150)
+    plt.legend()
+    plt.figure(12)
+    plt.title("Mean age of living cells against time")
+    plt.ylabel("Mean age of living cells")
+    plt.xlabel("Time (number of steps)")
+    plt.xlim(0,150)
+    plt.legend()
+
+
+# POWER-LAW FIT density
+def main6():
+    vars = [1,1,1]
+    x = openEx("syncrate.xls",3,0,12)
+    data = openEx("syncrate.xls",3,1,12)
+    print("s =",x)
+    print("d =",data)
+    eps_data = 1
+
+    fitvars = leastsq(PLresidual, vars, args=(x, data, eps_data))
+    print("Best fit: (sc, beta, amp) =",fitvars)
+
+    # Best fit
+    sc = fitvars[0][0]
+    beta = fitvars[0][1]
+    amp = fitvars[0][2]
+    n = len(x)
+    model = np.zeros(n)
+    for i in range(n):
+        model[i] = amp * (sc-x[i])**beta
+
+    plt.plot(x,data,'-b',label='Observations')
+    plt.plot(x,model,'--r',label='Model')
+    plt.xlabel('Synchronisation rate s')
+    plt.ylabel('Steady-state density (%)')
+    plt.title('Second-order phase transition of steady-state density for d0 = 0.95. '+'\n'+
+              'Model fit : power-law [\u03B2='+ str(round(beta,3))+', critical s='+str(round(sc,3))+']')
+    plt.legend()
+
+# POWER-LAW FIT density
+def main7():
+    vars = [1,1,1]
+    x = openEx("syncrate.xls",4,0,12)
+    data = openEx("syncrate.xls",4,1,12)
+    print("s =",x)
+    print("d =",data)
+    eps_data = 1
+
+    fitvars = leastsq(PLresidual, vars, args=(x, data, eps_data))
+    print("Best fit: (sc, beta, amp) =",fitvars)
+
+    # Best fit
+    sc = fitvars[0][0]
+    beta = fitvars[0][1]
+    amp = fitvars[0][2]
+    n = len(x)
+    model = np.zeros(n)
+    for i in range(n):
+        model[i] = amp * (sc-x[i])**beta
+
+    plt.plot(x,data,'-b',label='Observations')
+    plt.plot(x,model,'--r',label='Model')
+    plt.xlabel('Synchronisation rate s')
+    plt.ylabel('Steady-state density (%)')
+    plt.title('Second-order phase transition of steady-state activity for d0 = 0.95. '+'\n'+
+              'Model fit : power-law [\u03B2='+ str(round(beta,3))+', critical s='+str(round(sc,3))+']')
+    plt.legend()
+
+
+
 # MAIN
-main2()
-main3()
+main1()
 plt.show()
